@@ -2,7 +2,8 @@
 1) Κατεβάζουμε το XAMPP (https://www.apachefriends.org/index.html) και install
 2) Κάνουμε copy-paste τον φάκελο Search Engine στο xampp/htdocs
 3) Στο xampp/htdocs, ανοίγουμε το index.php και αλλάζουμε στην 8η γραμμή το '/dashboard/' σε '/Search Engine/'
-4) Τρέχουμε τον indexer στο Search Engine/data και τον αφήνουμε να τρέχει στο background
-5) Τρέχουμε τον crawler στο Search Engine/data με παραμέτρους ή χωρίς
-6) Ξεκινάμε το xampp control panel(κατα προτίμηση ως administrator)
-7) Στην σειρά Apache πατάμε Start και μετα Admin 
+4) Κάνουμε install τα απαραίτητα packages της python(bs4 + ό,τι άλλο ζητηθεί)
+5) Τρέχουμε τον indexer στο Search Engine/data και τον αφήνουμε να τρέχει στο background
+6) Τρέχουμε τον crawler στο Search Engine/data με παραμέτρους ή χωρίς
+7) Ξεκινάμε το xampp control panel(κατά προτίμηση ως administrator)
+8) Στην σειρά Apache πατάμε Start και μετά Admin

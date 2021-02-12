@@ -134,6 +134,10 @@ def mainCrawlLoop(lock):
                     data = list_all_doc_data(link, title, description, text)
                     # Lock for concurrency
                     lock.acquire()
+                    # Check to see if finished
+                    if number_of_pages_crawled >= number_of_pages:
+                        lock.release()
+                        break
                     document_data[link_ids] = data
                     indexer_data[link_ids] = data
                     print("link_ids", link_ids)

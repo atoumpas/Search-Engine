@@ -1,0 +1,78 @@
+body {
+	width: 100vw;
+	height: 100vh;
+}
+
+.container-fluid {
+  position: relative;
+  width: 100%;
+	height: 100%;
+}
+
+.top-side {
+	position: relative;
+	display: inline-block;
+	width: 100%;
+	height: 7%;
+	margin-top: 2%;
+	margin-left: 6%;
+}
+
+.bottom-side {
+	position: relative;
+	width: 100%;
+	height: 90%;
+	margin-left: 10px;
+}
+
+.bottom-side > * {
+	display: block;
+}
+
+.feedback-info {
+	margin-left: 1%;
+	margin-bottom: 2%;
+	font-weight: bold;
+}
+
+hr {
+	margin-bottom: 1%;
+}
+
+.info-per-page {
+	display: flex;
+	margin-bottom: 8%;
+}
+
+.feedback {
+	width: 10%;
+}
+
+.form-check-input {
+	margin-left: 43%;
+	width: 20px;
+	height: 20px;
+}
+
+.page-container {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	margin-left: 4%;
+}
+
+#text-input {
+  background: url(search.svg) no-repeat scroll 10px 10px;
+  padding-left: 35px;
+}
+
+form {
+	display: inline;
+}
+
+#search-form {
+	width: 50vw;
+}
+#update-form {
+	margin-left: -160px;
+}

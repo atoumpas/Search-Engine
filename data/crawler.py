@@ -108,6 +108,7 @@ def Merge(new, old):
 
 # variables needed
 document_data = {}
+indexer_data = {}
 link_ids = 1
 titles = []
 links = set()
@@ -116,8 +117,7 @@ pages_for_index_update = 20
 links_queue = Queue()
 
 def mainCrawlLoop(lock):
-    global document_data,link_ids,titles,links,number_of_pages_crawled,links_queue
-    indexer_data = {}  # contains the portion of document_data which we want to send to indexer
+    global document_data,indexer_data,link_ids,titles,links,number_of_pages_crawled,links_queue
     old_index_data = {}
     while number_of_pages_crawled < number_of_pages and links_queue.empty() is False:
         link = links_queue.get() # get first link in queue
@@ -176,7 +176,7 @@ def mainCrawlLoop(lock):
                             links_queue.put(new_link)
                             links.add(new_link)
                     links.add(link)
-                
+
         except Exception as e:  # catch *all* exceptions
                 print(e)
 
@@ -189,7 +189,7 @@ def crawler(starting_link, number_of_pages,number_of_threads):
         values = document_data.values()
         titles = [value[1] for value in values]
         print("Reading old files\n")
-        
+
     old_index_data = {}
     # creates the data document we want to send to indexer
     with open('index_data.json', 'w') as fp:
@@ -197,7 +197,7 @@ def crawler(starting_link, number_of_pages,number_of_threads):
     links_queue = Queue(maxsize = number_of_pages) # contains links left to explore
 
     #explore starting link
-    link = starting_link 
+    link = starting_link
     if '#' not in link and 'https://' in link or 'http://' in link:
         agent = {"User-Agent":'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36'}
         res = requests.get(link, headers=agent) # get first link in queue
@@ -226,7 +226,7 @@ def crawler(starting_link, number_of_pages,number_of_threads):
         thread.start()
     for thread in thread_list:
         thread.join()
-    
+
     if(links_queue.empty()):
         print("\n")
         print("No more links left!")

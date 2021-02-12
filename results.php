@@ -25,7 +25,6 @@
       $documents = json_decode($json_string,true);
       sleep(0.01);
     } while($documents == NULL);
-    echo 'document_data ',count($documents),"\n";
     if(!isset($_POST['feedback-pages'])) {    # if no relevant documents selected
       return;
     }
@@ -91,7 +90,6 @@
       $pages = json_decode($json_string,true);
       sleep(0.01);
     } while($pages == NULL);
-    echo 'document_data ',count($pages),"\n";
     $N = count($pages);
 
     # connect to index
@@ -100,7 +98,6 @@
       $dictionary = json_decode($json_string,true);
       sleep(0.01);
     } while($dictionary == NULL);
-    echo 'inverted_index ',count($dictionary),"\n";
 
     # connect to norms
     do {
@@ -108,7 +105,6 @@
       $norms = json_decode($json_string,true);
       sleep(0.01);
     } while($norms == NULL);
-    echo 'norms ',count($norms),"\n";
 
     # initialize sums array
     $sum = [];
@@ -159,7 +155,6 @@
       $pages = json_decode($json_string,true);
       sleep(0.01);
     } while($pages == NULL);
-    echo 'document_data ',count($pages),"\n";
 
     foreach($IDs as $currentID) {
       array_push($URLS,$pages[$currentID][0]);

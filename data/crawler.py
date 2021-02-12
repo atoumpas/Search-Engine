@@ -115,7 +115,7 @@ number_of_pages_crawled = 0
 pages_for_index_update = 20
 links_queue = Queue()
 
-def mainCrawlLoop(lock1,lock2,lock3):
+def mainCrawlLoop(lock):
     global document_data,link_ids,titles,links,number_of_pages_crawled,links_queue
     indexer_data = {}  # contains the portion of document_data which we want to send to indexer
     old_index_data = {}
@@ -128,17 +128,20 @@ def mainCrawlLoop(lock1,lock2,lock3):
                 soup = BeautifulSoup(res.text, "html.parser")
                 title = get_title(soup)
                 if title not in titles:
-                    print("link_ids", link_ids)
-                    print(link)
                     titles.append(title)
                     text = get_text(soup)
                     description = get_description(soup, text)
                     data = list_all_doc_data(link, title, description, text)
+                    # Lock for concurrency
+                    lock.acquire()
                     document_data[link_ids] = data
                     indexer_data[link_ids] = data
+                    print("link_ids", link_ids)
+                    print(link)
+                    link_ids += 1
+                    number_of_pages_crawled += 1
 
-                    lock1.acquire()
-                    if link_ids % pages_for_index_update == 0:  # send the links to indexer
+                    if (link_ids-1) % pages_for_index_update == 0:  # send the links to indexer
                         # will contain all our data
                         with open('document_data.json', 'w') as fp:
                             json.dump(document_data, fp, indent=2)
@@ -154,10 +157,7 @@ def mainCrawlLoop(lock1,lock2,lock3):
                             json.dump(indexer_data, fp, indent=2)
                         indexer_data = {}
                         print("send to index")
-                    lock1.release()
-                    lock2.acquire()
-                    link_ids += 1
-                    lock2.release()
+                    lock.release()
                     new_links = soup.find_all('a', href=True)
                     for l in new_links:
                         new_link = l['href']
@@ -172,9 +172,6 @@ def mainCrawlLoop(lock1,lock2,lock3):
                             links_queue.put(new_link)
                             links.add(new_link)
                     links.add(link)
-                    lock3.acquire()
-                    number_of_pages_crawled += 1
-                    lock3.release()
                 
         except Exception as e:  # catch *all* exceptions
                 print(e)
@@ -194,15 +191,32 @@ def crawler(starting_link, number_of_pages,number_of_threads):
     with open('index_data.json', 'w') as fp:
         json.dump(old_index_data, fp, indent=2)
     links_queue = Queue(maxsize = number_of_pages) # contains links left to explore
-    links_queue.put(starting_link)
-    
+
+    #explore starting link
+    link = starting_link 
+    if '#' not in link and 'https://' in link or 'http://' in link:
+        agent = {"User-Agent":'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36'}
+        res = requests.get(link, headers=agent) # get first link in queue
+        soup = BeautifulSoup(res.text, "html.parser")
+        new_links = soup.find_all('a', href=True)
+        for l in new_links:
+            new_link = l['href']
+            if new_link[0] == '/':
+                if link[4] == 's':
+                    http = 'https://'
+                else:
+                    http = 'http://'
+                domain = link.split(http)[1].split('/')[0]
+                new_link = http + domain + new_link
+            if links_queue.full() == False:
+                links_queue.put(new_link)
+                links.add(new_link)
+
     thread_list = []
-    lock1 = threading.Lock()
-    lock2 = threading.Lock()
-    lock3 = threading.Lock()
+    lock = threading.Lock()
 
     for i in range(0,number_of_threads):
-        thread = threading.Thread(target=mainCrawlLoop, args=(lock1,lock2,lock3))
+        thread = threading.Thread(target=mainCrawlLoop, args=(lock,))
         thread_list.append(thread)
     for thread in thread_list:
         thread.start()

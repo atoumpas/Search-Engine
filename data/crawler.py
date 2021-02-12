@@ -8,6 +8,7 @@ import math
 import os
 from queue import Queue
 from os.path import getsize
+import threading
 
 def delete_database():
     filenames = ["document_data.json","inverted_index.json","norms.json"]
@@ -105,29 +106,19 @@ def Merge(new, old):
         old[data] = new[data]
     return old
 
+# variables needed
+document_data = {}
+link_ids = 1
+titles = []
+links = set()
+number_of_pages_crawled = 0
+pages_for_index_update = 20
+links_queue = Queue()
 
-def crawler(starting_link, number_of_pages, pages_for_index_update):
-    if os.path.isfile("document_data.json"):    #if we wish to retain old data
-        with open('document_data.json') as json_file:
-            document_data = json.load(json_file)
-        link_ids = len(document_data) + 1
-        values = document_data.values()
-        titles = [value[1] for value in values]
-        print("Reading old files\n")
-    else:
-        document_data = {}  # keeps all of our data (data id: link, title, description, text)
-        link_ids = 1  # id of every individual link, will be the data id in the document_data
-        titles = []  # will contain the titles for each link above
-        
+def mainCrawlLoop(lock1,lock2,lock3):
+    global document_data,link_ids,titles,links,number_of_pages_crawled,links_queue
     indexer_data = {}  # contains the portion of document_data which we want to send to indexer
     old_index_data = {}
-    # creates the data document we want to send to indexer
-    with open('index_data.json', 'w') as fp:
-        json.dump(old_index_data, fp, indent=2)
-    links = set()  # will  contain all the links we got data from
-    number_of_pages_crawled = 0
-    links_queue = Queue(maxsize = number_of_pages) # contains links left to explore
-    links_queue.put(starting_link)
     while number_of_pages_crawled < number_of_pages and links_queue.empty() is False:
         link = links_queue.get() # get first link in queue
         try:
@@ -146,6 +137,7 @@ def crawler(starting_link, number_of_pages, pages_for_index_update):
                     document_data[link_ids] = data
                     indexer_data[link_ids] = data
 
+                    lock1.acquire()
                     if link_ids % pages_for_index_update == 0:  # send the links to indexer
                         # will contain all our data
                         with open('document_data.json', 'w') as fp:
@@ -162,7 +154,10 @@ def crawler(starting_link, number_of_pages, pages_for_index_update):
                             json.dump(indexer_data, fp, indent=2)
                         indexer_data = {}
                         print("send to index")
-                    link_ids = link_ids + 1
+                    lock1.release()
+                    lock2.acquire()
+                    link_ids += 1
+                    lock2.release()
                     new_links = soup.find_all('a', href=True)
                     for l in new_links:
                         new_link = l['href']
@@ -177,10 +172,43 @@ def crawler(starting_link, number_of_pages, pages_for_index_update):
                             links_queue.put(new_link)
                             links.add(new_link)
                     links.add(link)
+                    lock3.acquire()
                     number_of_pages_crawled += 1
+                    lock3.release()
                 
         except Exception as e:  # catch *all* exceptions
                 print(e)
+
+def crawler(starting_link, number_of_pages,number_of_threads):
+    global document_data,link_ids,titles,links,number_of_pages_crawled,links_queue
+    if os.path.isfile("document_data.json"):    #if we wish to retain old data
+        with open('document_data.json') as json_file:
+            document_data = json.load(json_file)
+        link_ids = len(document_data) + 1
+        values = document_data.values()
+        titles = [value[1] for value in values]
+        print("Reading old files\n")
+        
+    old_index_data = {}
+    # creates the data document we want to send to indexer
+    with open('index_data.json', 'w') as fp:
+        json.dump(old_index_data, fp, indent=2)
+    links_queue = Queue(maxsize = number_of_pages) # contains links left to explore
+    links_queue.put(starting_link)
+    
+    thread_list = []
+    lock1 = threading.Lock()
+    lock2 = threading.Lock()
+    lock3 = threading.Lock()
+
+    for i in range(0,number_of_threads):
+        thread = threading.Thread(target=mainCrawlLoop, args=(lock1,lock2,lock3))
+        thread_list.append(thread)
+    for thread in thread_list:
+        thread.start()
+    for thread in thread_list:
+        thread.join()
+    
     if(links_queue.empty()):
         print("\n")
         print("No more links left!")
@@ -190,13 +218,11 @@ def crawler(starting_link, number_of_pages, pages_for_index_update):
     print("======")
     return links, titles, document_data
 
-
-pages_for_index_update = 20
-
 if len(sys.argv) == 1:
     starting_link = "https://stackoverflow.com/"
     number_of_pages = 400
     delete_database()
+    number_of_threads = 4
 elif len(sys.argv) == 5:
     starting_link = sys.argv[1]
     number_of_pages = int(sys.argv[2])
@@ -206,7 +232,7 @@ elif len(sys.argv) == 5:
 else:
     print("Wrong number of arguments")
     exit()
-links, titles, document_data = crawler(starting_link, number_of_pages, pages_for_index_update)
+links, titles, document_data = crawler(starting_link, number_of_pages,number_of_threads)
 
 with open('document_data.json', 'w') as fp:
     json.dump(document_data, fp, indent=2)

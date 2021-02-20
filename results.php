@@ -23,7 +23,6 @@
     do {
       $json_string = file_get_contents("data/document_data.json");
       $documents = json_decode($json_string,true);
-      sleep(0.01);
     } while($documents == NULL);
     if(!isset($_POST['feedback-pages'])) {    # if no relevant documents selected
       return;
@@ -84,11 +83,24 @@
       $search_words = array_keys($word_weights);
     }
 
+    # send to json files to read from python script
+    $file = fopen('data/query.json', 'w');
+    fwrite($file, json_encode($search_words));
+    fclose($file);
+
+    # send to json files to read from python script
+    $file = fopen('data/temp.json', 'w');
+    $data['search'] = $search_words;
+    $data['weights'] = $word_weights;
+    fwrite($file, json_encode($data));
+    fclose($file);
+
+    exec('data/search_script.py '.$_POST['submit_button'].'');
+
     #connect to page database,get total number of pages
     do {
       $json_string = file_get_contents("data/document_data.json");
       $pages = json_decode($json_string,true);
-      sleep(0.01);
     } while($pages == NULL);
     $N = count($pages);
 
@@ -96,14 +108,12 @@
     do {
       $json_string = file_get_contents("data/inverted_index.json");
       $dictionary = json_decode($json_string,true);
-      sleep(0.01);
     } while($dictionary == NULL);
 
     # connect to norms
     do {
       $json_string = file_get_contents("data/norms.json");
       $norms = json_decode($json_string,true);
-      sleep(0.01);
     } while($norms == NULL);
 
     # initialize sums array
@@ -153,7 +163,6 @@
     do {
       $json_string = file_get_contents("data/document_data.json");
       $pages = json_decode($json_string,true);
-      sleep(0.01);
     } while($pages == NULL);
 
     foreach($IDs as $currentID) {

@@ -5,12 +5,35 @@ import json
 import math
 from os.path import getsize
 import time
+from queue import Queue
+import threading
+
+
+
+def mainInvertedLoop (lock):
+    global dif_words_queue, inverted_dict, total_inverted_dict, dict, total_norms
+    word = dif_words_queue.get() # get first word in queue
+
+    inverted = []  # contains two values ( [in which document, frequency] ) or [[2, 0.2]]
+    for i in dict.keys():
+        if dict[i][3].count(word) != 0:
+            temp = []
+            temp.append(i)
+            temp.append(dict[i][3].count(word)) 
+            inverted.append(temp)
+    inverted_dict[word] = inverted
+    
+
 
 # gets a dictionary with our new documents named dict
 # the previous inverted index named total_inverted_dict
 # the previous norms named total_norms
 # creates the inverted_dict
-def inverted_index(total_inverted_dict, dict, total_norms):
+def inverted_index(number_of_threads):
+    global dif_words_queue, inverted_dict ####
+    global total_inverted_dict, dict, total_norms
+    dif_words_queue = Queue() # contains words left to explore ####
+    
     # find all diffirent words on our documents, and also the number of unique words for each document
     norms = {}
     dif_words = []  # all tha diffirent words
@@ -24,19 +47,8 @@ def inverted_index(total_inverted_dict, dict, total_norms):
                 counter += 1
             if word not in dif_words:
                 dif_words.append(word)
+                dif_words_queue.put(word)#####
         norms[i] = math.sqrt(counter)
-
-    # for each diffirent word, count how many times it appears in every document
-    inverted_dict = {}  # will contain the final inverted index (διαγράφει [[2, 0.2]])
-    for word in dif_words:
-        inverted = []  # contains two values ( [in which document, frequency] ) or [[2, 0.2]]
-        for i in dict.keys():
-            if dict[i][3].count(word) != 0:
-                temp = []
-                temp.append(i)
-                temp.append(dict[i][3].count(word))  # frequency
-                inverted.append(temp)
-        inverted_dict[word] = inverted
 
     # adding norms for each document, depending if we already had a norm file or not
     if total_norms:
@@ -44,8 +56,22 @@ def inverted_index(total_inverted_dict, dict, total_norms):
             total_norms[doc] = norms[doc]
     else:
         total_norms = norms.copy()
+        
+    inverted_dict = {}  # will contain the final inverted index (διαγράφει [[2, 0.2]])
+    
 
-    # in case inverted index wasnt empty, we merge the old one with the new one, otherwise we create the new inverted
+    thread_list = []
+    lock = threading.Lock()
+
+    for i in range(0,number_of_threads):
+        thread = threading.Thread(target=mainInvertedLoop, args=(lock,))
+        thread_list.append(thread)
+    for thread in thread_list:
+        thread.start()
+    for thread in thread_list:
+        thread.join()
+
+
     if total_inverted_dict:
         print("not empty")
         for word in inverted_dict:  # for each word in the inverted we just created
@@ -57,6 +83,7 @@ def inverted_index(total_inverted_dict, dict, total_norms):
     else:
         print("empty")
         total_inverted_dict = inverted_dict.copy()
+    
 
     # write dicts in json files
     with open('norms.json', 'w') as fp:
@@ -68,6 +95,7 @@ def inverted_index(total_inverted_dict, dict, total_norms):
     return total_inverted_dict, total_norms
 
 
+
 # in case there is no index_data file at all, creats an empty one, until crawler sends his data
 if not (os.path.exists('index_data.json')):
     index_data = {}
@@ -77,7 +105,11 @@ if not (os.path.exists('index_data.json')):
 start = time.time()
 # run for one hour
 one_hour = 60 * 60
+number_of_threads = 20
+global total_inverted_dict, dict, total_norms
 while (time.time() - start < one_hour):
+    
+    
     # if crawler has sent us new data
     if getsize('index_data.json') > 2:
         time.sleep(2) #add delay in case file is still being written
@@ -95,7 +127,8 @@ while (time.time() - start < one_hour):
             total_norms = {}
 
         # total_inverted_dict is our previous inverted and we want to update it, if empty it creates a new one
-        total_inverted_dict, total_norms = inverted_index(total_inverted_dict, dict, total_norms)
+        total_inverted_dict, total_norms = inverted_index(number_of_threads)
+        
         end = time.time()
         # index_data should be emptied here
         indexer_data = {}

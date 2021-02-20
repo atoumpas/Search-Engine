@@ -84,11 +84,6 @@
     }
 
     # send to json files to read from python script
-    $file = fopen('data/query.json', 'w');
-    fwrite($file, json_encode($search_words));
-    fclose($file);
-
-    # send to json files to read from python script
     $file = fopen('data/temp.json', 'w');
     $data['search'] = $search_words;
     $data['weights'] = $word_weights;
@@ -97,18 +92,10 @@
 
     exec('data/search_script.py '.$_POST['submit_button'].'');
 
-    #connect to page database,get total number of pages
-    do {
-      $json_string = file_get_contents("data/document_data.json");
-      $pages = json_decode($json_string,true);
-    } while($pages == NULL);
-    $N = count($pages);
-
-    # connect to index
-    do {
-      $json_string = file_get_contents("data/inverted_index.json");
-      $dictionary = json_decode($json_string,true);
-    } while($dictionary == NULL);
+    $json_string = file_get_contents("data/temp.json");
+    $decode = json_decode($json_string,true);
+    $sum = $decode['sum'];
+    $word_weights = $decode['word_weights'];
 
     # connect to norms
     do {
@@ -116,37 +103,7 @@
       $norms = json_decode($json_string,true);
     } while($norms == NULL);
 
-    # initialize sums array
-    $sum = [];
 
-    # calculate sums
-    foreach($search_words as $currect_word) {
-      if(isset($dictionary[$currect_word])) { # if word exists in at least 1 document
-        $tuples = $dictionary[$currect_word];
-        $nt = count($tuples);
-        $weight = 0;
-        if($_POST['submit_button'] == 'search') { #if new search, weight = IDF
-          $weight = log(1 + $N / $nt);
-          $word_weights[$currect_word] = $weight; #update word weights in case of RF
-        }
-        else {              #weight given by relevance feedback calculations
-          $weight = $word_weights[$currect_word];
-        }
-        foreach($tuples as $tuple) {
-          $documentID = $tuple[0];
-          $freq = $tuple[1];
-          # if sum does not exist yet,create it
-          if(!isset($sum[$documentID])) {
-            $sum[$documentID] = 0;
-          }
-          $TF = 1 + log($freq);
-          $sum[$documentID] += $TF * $weight;
-        }
-      }
-      else {
-        $word_weights[$currect_word] = 0; #give weight 0
-      }
-    }
     # normalize each accumulator
     foreach($sum as $ID => &$accumulator) {
       $accumulator /= $norms[$ID];

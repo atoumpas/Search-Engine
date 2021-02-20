@@ -1,13 +1,16 @@
 # coding=utf-8
+import os
 import json
 import sys
 import math
+import time
+import threading
 
 def mainLoop(word,lock):
     if word in dictionary:
         tuples = dictionary[word]
         nt = len(tuples)
-        if sys.argv[1] == 'search':
+        if data['type'] == 'search':
             weight = math.log(1 + N / nt)
             data['weights'][word] = weight
         else:
@@ -24,35 +27,41 @@ def mainLoop(word,lock):
     else:
         data['weights'][word] = 0
         
-        
+start = time.time()
+# run for one hour
+one_hour = 60 * 60
+while (time.time() - start < one_hour):
+    if os.path.isfile('temp.json'):
+        time.sleep(0.1)
+        with open('temp.json') as json_file:
+            data = json.load(json_file)
+        os.remove('temp.json')
 
-with open('temp.json') as json_file:
-    data = json.load(json_file)
+        # in case of no weights, turn empty list to dictionary
+        if not data['weights']:
+            x = {}
+            data['weights'] = x
 
-with open('document_data.json') as json_file:
-    pages = json.load(json_file)
-N = len(pages)
-with open('inverted_index.json') as json_file:
-    dictionary = json,load(json_file)
+        with open('document_data.json') as json_file:
+            pages = json.load(json_file)
+        N = len(pages)
+        with open('inverted_index.json') as json_file:
+            dictionary = json.load(json_file)
 
-sum = {}
-thread_list = []
-lock = threading.Lock()
-for i in range(0,len(data['search'])):
-    thread = threading.Thread(target=mainLoop, args=(data['search'][i],lock,))
-    thread_list.append(thread)
-for thread in thread_list:
-    thread.start()
-for thread in thread_list:
-    thread.join()
+        sum = {}
+        thread_list = []
+        lock = threading.Lock()
+        for i in range(0,len(data['search'])):
+            thread = threading.Thread(target=mainLoop, args=(data['search'][i],lock,))
+            thread_list.append(thread)
+        for thread in thread_list:
+            thread.start()
+        for thread in thread_list:
+            thread.join()
 
+        todump = {}
+        todump["sum"] = sum
+        todump["weights"] = data['weights']
 
-todump = []
-todump.append(sum)
-todump.append(data['weights'])
-
-with open('temp.json', 'w') as fp:
-    json.dump(todump, fp, indent=2)
-
-    
-               
+        with open('query_results.json', 'w') as fp:
+            json.dump(todump, fp, indent=2) 

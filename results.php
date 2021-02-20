@@ -87,15 +87,20 @@
     $file = fopen('data/temp.json', 'w');
     $data['search'] = $search_words;
     $data['weights'] = $word_weights;
+    $data['type'] = $_POST['submit_button'];
     fwrite($file, json_encode($data));
     fclose($file);
 
-    exec('data/search_script.py '.$_POST['submit_button'].'');
-
-    $json_string = file_get_contents("data/temp.json");
-    $decode = json_decode($json_string,true);
+    while (!file_exists('data/query_results.json')) {
+      sleep(0.05);
+    }
+    do {
+      $json_string = file_get_contents("data/query_results.json");
+      $decode = json_decode($json_string,true);
+    } while ($decode == NULL);
     $sum = $decode['sum'];
-    $word_weights = $decode['word_weights'];
+    $word_weights = $decode['weights'];
+    unlink("data/query_results.json");
 
     # connect to norms
     do {

@@ -1,7 +1,6 @@
 Οδηγίες Εγκατάστασης:
 1) Κατεβάζουμε το XAMPP (https://www.apachefriends.org/index.html) και install (για Linux οδηγίες: https://vitux.com/how-to-install-xampp-on-your-ubuntu-18-04-lts-system/)
 1a) Για linux,κάνουμε:
-  cd /opt/lampp
   sudo chown -R myUserName /opt/lampp
   sudo chmod -R 777 /opt/lampp
 2) Κάνουμε copy-paste τον φάκελο Search Engine στο xampp/htdocs (ή opt/lampp/htdocs σε Linux)
@@ -11,4 +10,7 @@
 6) Τρέχουμε τον crawler στο Search Engine/data με παραμέτρους ή χωρίς
 7) Τρέχουμε το search_script στο Search Engine/data και το αφήνουμε να τρέχει στο background
 8) Ξεκινάμε το xampp control panel(κατά προτίμηση ως administrator)  (για Linux: sudo /opt/lampp/manager-linux-x64.run)
+8α) Για linux,ξανακάνουμε:
+  sudo chown -R myUserName /opt/lampp
+  sudo chmod -R 777 /opt/lampp
 9) Κάνουμε start το Apache, και σε εναν browser πάμε στο http://localhost/

@@ -117,28 +117,30 @@ while (time.time() - start < one_hour):
     if getsize('index_data.json') > 2:
         time.sleep(0.1) #add delay in case file is still being written
         s = time.time()
-        with open('index_data.json') as json_file:
-            index_data = json.load(json_file)
+        try:
+            with open('index_data.json') as json_file:
+                index_data = json.load(json_file)
 
-        # check if we already have an inverted index
-        if os.path.exists('inverted_index.json'):
-            with open('inverted_index.json') as json_file:
-                total_inverted_dict = json.load(json_file)
-            with open('norms.json') as json_file:
-                total_norms = json.load(json_file)
-        else:
-            total_inverted_dict = {}
-            total_norms = {}
+            # check if we already have an inverted index
+            if os.path.exists('inverted_index.json'):
+                with open('inverted_index.json') as json_file:
+                    total_inverted_dict = json.load(json_file)
+                with open('norms.json') as json_file:
+                    total_norms = json.load(json_file)
+            else:
+                total_inverted_dict = {}
+                total_norms = {}
 
-        # total_inverted_dict is our previous inverted and we want to update it, if empty it creates a new one
-        total_inverted_dict, total_norms = inverted_index(number_of_threads)
+            # total_inverted_dict is our previous inverted and we want to update it, if empty it creates a new one
+            total_inverted_dict, total_norms = inverted_index(number_of_threads)
         
-        end = time.time()
-        # index_data should be emptied here
-        indexer_data = {}
-        with open('index_data.json', 'w') as fp:
-            json.dump(indexer_data, fp, indent=2)
-
+            end = time.time()
+            # index_data should be emptied here
+            indexer_data = {}
+            with open('index_data.json', 'w') as fp:
+                json.dump(indexer_data, fp, indent=2)
+        except:
+            print("file was curently being used by crawler")
         print("total time", end - s)
 
 # for word in total_norms:

@@ -182,7 +182,7 @@ def mainCrawlLoop(lock):
                             json.dump(indexer_data, fp, indent=2)
                         indexer_data = {}
                         print("send to index")
-                        time.sleep(3)
+                        time.sleep(8)
                     lock.release()
                     new_links = soup.find_all('a', href=True)
                     for l in new_links:
@@ -259,6 +259,7 @@ def crawler(starting_link, number_of_pages,number_of_threads):
     return links, titles, document_data
 
 if len(sys.argv) == 1:
+    #starting_link = "https://www.news247.gr/"
     starting_link = "https://www.sdna.gr/"
     #starting_link = "https://stackoverflow.com/"
     number_of_pages = 400

@@ -24,27 +24,6 @@ def mainNormLoop(doc):
     norms[doc] = math.sqrt(counter)
 
 
-def mainInvertedLoop ():
-    global dif_words_queue, inverted_dict, total_inverted_dict, index_data, total_norms, dif_words, unique_words
-    while True:
-        #print("inside while")
-        try:
-            if dif_words_queue.empty():
-                return
-            word = dif_words_queue.get() # get first word in queue
-
-            inverted = []  # contains two values ( [in which document, frequency] ) or [[2, 0.2]]
-            for i in index_data.keys():
-                if index_data[i][3].count(word) != 0:
-                    temp = []
-                    temp.append(i)
-                    temp.append(index_data[i][3].count(word)) 
-                    inverted.append(temp)
-            inverted_dict[word] = inverted
-        except Exception as e:  # catch *all* exceptions
-            print("gamiete", e)
-            return
-
 
 # gets a dictionary with our new documents named dict
 # the previous inverted index named total_inverted_dict
@@ -80,17 +59,24 @@ def inverted_index(number_of_threads):
         total_norms = norms.copy()
 
     print (time.time() - s)
+    #inverted_dict = {}  # will contain the final inverted index (διαγράφει [[2, 0.2]])
+    #thread_list = []
+
+    
+
+    # for each diffirent word, count how many times it appears in every document
     inverted_dict = {}  # will contain the final inverted index (διαγράφει [[2, 0.2]])
-    thread_list = []
+    for word in dif_words:
+        inverted = []  # contains two values ( [in which document, frequency] ) or [[2, 0.2]]
+        for i in index_data.keys():
+            if index_data[i][3].count(word) != 0:
+                temp = []
+                temp.append(i)
+                temp.append(index_data[i][3].count(word))  # frequency
+                inverted.append(temp)
+        inverted_dict[word] = inverted
 
-    for i in range(0,number_of_threads):
-        thread = threading.Thread(target=mainInvertedLoop, args=())
-        thread_list.append(thread)
-    for thread in thread_list:
-        thread.start()
-    for thread in thread_list:
-        thread.join()
-
+     # in case inverted index wasnt empty, we merge the old one with the new one, otherwise we create the new inverted
     if total_inverted_dict:
         print("not empty")
         for word in inverted_dict:  # for each word in the inverted we just created
@@ -102,7 +88,7 @@ def inverted_index(number_of_threads):
     else:
         print("empty")
         total_inverted_dict = inverted_dict.copy()
-    
+        
     s = time.time()
     # write dicts in json files
     with open('norms.json', 'w') as fp:

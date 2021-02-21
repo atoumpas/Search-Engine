@@ -24,10 +24,10 @@
       $json_string = file_get_contents("data/document_data.json");
       $documents = json_decode($json_string,true);
     } while($documents == NULL);
-    if(!isset($_POST['feedback-pages'])) {    # if no relevant documents selected
+    if(!isset($_GET['feedback-pages'])) {    # if no relevant documents selected
       return;
     }
-    $relevantIDs = $_POST['feedback-pages'];
+    $relevantIDs = $_GET['feedback-pages'];
     foreach($relevantIDs as $documentID) {
       $current_document = $documents[$documentID];
       $words = explode(" ", $current_document[3]);
@@ -87,7 +87,7 @@
     $file = fopen('data/temp.json', 'w');
     $data['search'] = $search_words;
     $data['weights'] = $word_weights;
-    $data['type'] = $_POST['submit_button'];
+    $data['type'] = $_GET['submit_button'];
     fwrite($file, json_encode($data));
     fclose($file);
 
@@ -134,8 +134,8 @@
   }
 
   $search_string = "";
-  if($_POST['submit_button'] == 'search') {
-    $search_string = preprocessString($_POST['input']);
+  if($_GET['submit_button'] == 'search') {
+    $search_string = preprocessString($_GET['input']);
     $word_weights = [];
   }
   else {
@@ -163,7 +163,7 @@
 
 		<!-- Bootstrap CSS -->
 		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-		<title>Results for: <?php echo $_POST['input']?></title>
+		<title>Results for: <?php echo $_GET['input']?></title>
 
 		<!-- My CSS file -->
 		<link rel="stylesheet" type="text/css" href="results.css">
@@ -172,20 +172,20 @@
     <div class="container-fluid">
       <div class="top-side">
         <div class="form-row">
-          <form id="search-form" action="results.php" method="post">
+          <form id="search-form" action="results.php" method="get">
             <div class="row">
               <div class="input-group col-8">
-                <input type="text" class="form-control" id="text-input" name="input" value="<?php echo $_POST['input'] ?>" placeholder="Type a string" required>
+                <input type="text" class="form-control" id="text-input" name="input" value="<?php echo $_GET['input'] ?>" placeholder="Type a string" required>
               </div>
               <div class="input-group col-2">
                 <button type="submit" name="submit_button" value="search" class="btn btn-light"> Search </button>
               </div>
             </div>
           </form>
-          <form id="update-form" action="results.php" method="post">
+          <form id="update-form" action="results.php" method="get">
             <div class="row">
               <div class="input-group col-2">
-                <input type="hidden" name="input" value="<?php echo $_POST['input'] ?>">
+                <input type="hidden" name="input" value="<?php echo $_GET['input'] ?>">
                 <button type="submit" name="submit_button" value="update" class="btn btn-secondary"> Update </button>
               </div>
             </div>
@@ -196,7 +196,7 @@
         <hr>
       <?php
       if(empty($titles)) {
-        echo '<span> Your search for <b>"'.$_POST['input'].'"</b> did not match any documents. </span>';
+        echo '<span> Your search for <b>"'.$_GET['input'].'"</b> did not match any documents. </span>';
       }
       else {
         echo '<span class="feedback-info"> Mark this page as relevant </span>';

@@ -5,5 +5,6 @@
 4) Κάνουμε install τα απαραίτητα packages της python(bs4 + ό,τι άλλο ζητηθεί)
 5) Τρέχουμε τον indexer στο Search Engine/data και τον αφήνουμε να τρέχει στο background
 6) Τρέχουμε τον crawler στο Search Engine/data με παραμέτρους ή χωρίς
-7) Ξεκινάμε το xampp control panel(κατά προτίμηση ως administrator)
-8) Στην σειρά Apache πατάμε Start και μετά Admin
+7) Τρέχουμε το search_script στο Search Engine/data και το αφήνουμε να τρέχει στο background
+8) Ξεκινάμε το xampp control panel(κατά προτίμηση ως administrator)
+9) Στην σειρά Apache πατάμε Start και μετά Admin

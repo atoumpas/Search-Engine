@@ -35,19 +35,20 @@ while (time.time() - start < one_hour):
         time.sleep(0.1)
         with open('temp.json') as json_file:
             data = json.load(json_file)
-        os.remove('temp.json')
 
         # in case of no weights, turn empty list to dictionary
         if not data['weights']:
             x = {}
             data['weights'] = x
-
-        with open('document_data.json') as json_file:
-            pages = json.load(json_file)
-        N = len(pages)
-        with open('inverted_index.json') as json_file:
-            dictionary = json.load(json_file)
-
+        try:
+            with open('document_data.json') as json_file:
+                pages = json.load(json_file)
+            N = len(pages)
+            with open('inverted_index.json') as json_file:
+                dictionary = json.load(json_file)
+        except Exception as e:
+            print(e)
+        os.remove('temp.json')
         sum = {}
         thread_list = []
         lock = threading.Lock()

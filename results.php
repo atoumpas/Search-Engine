@@ -100,7 +100,6 @@
     } while ($decode == NULL);
     $sum = $decode['sum'];
     $word_weights = $decode['weights'];
-    unlink("data/query_results.json");
 
     # connect to norms
     do {
@@ -150,7 +149,9 @@
   if(files_exist()) {
     $IDs = getTopResults($search_string);
     createPageContents($IDs,$titles,$URLS,$descriptions);
+    unlink("data/query_results.json");
   }
+
 ?>
 
 <!doctype html>

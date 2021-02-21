@@ -14,7 +14,8 @@ from nltk.stem import PorterStemmer
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 import nltk
-#nltk.download('punkt') should be downloaded
+nltk.download('punkt')
+nltk.download('stopwords')
 
 def delete_database():
     filenames = ["document_data.json","inverted_index.json","norms.json"]
@@ -48,16 +49,16 @@ def process_text(text):
 
 
     stop_words = set(stopwords.words('english'))
-    stop_words_greek = set(stopwords.words('greek')) 
-  
-    word_tokens = word_tokenize(text)  
-  
+    stop_words_greek = set(stopwords.words('greek'))
+
+    word_tokens = word_tokenize(text)
+
     filtered_sentence = [w for w in word_tokens if not w in stop_words]
     filtered_sentence = [w for w in filtered_sentence if not w in stop_words_greek]
-    
+
     text = " ".join(filtered_sentence)
     text = ps.stem(text)
-    
+
     return text
 
 

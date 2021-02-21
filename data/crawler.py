@@ -3,12 +3,18 @@ import requests
 from bs4 import BeautifulSoup
 import sys
 import random
+import time
 import json
 import math
 import os
 from queue import Queue
 from os.path import getsize
 import threading
+from nltk.stem import PorterStemmer
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+import nltk
+#nltk.download('punkt') should be downloaded
 
 def delete_database():
     filenames = ["document_data.json","inverted_index.json","norms.json"]
@@ -37,6 +43,21 @@ def process_text(text):
 
     for i in range(len(old_letter)):
         text = text.replace(old_letter[i], new_letter[i])
+
+    ps = PorterStemmer()
+
+
+    stop_words = set(stopwords.words('english'))
+    stop_words_greek = set(stopwords.words('greek')) 
+  
+    word_tokens = word_tokenize(text)  
+  
+    filtered_sentence = [w for w in word_tokens if not w in stop_words]
+    filtered_sentence = [w for w in filtered_sentence if not w in stop_words_greek]
+    
+    text = " ".join(filtered_sentence)
+    text = ps.stem(text)
+    
     return text
 
 
@@ -161,6 +182,7 @@ def mainCrawlLoop(lock):
                             json.dump(indexer_data, fp, indent=2)
                         indexer_data = {}
                         print("send to index")
+                        time.sleep(3)
                     lock.release()
                     new_links = soup.find_all('a', href=True)
                     for l in new_links:
@@ -237,7 +259,8 @@ def crawler(starting_link, number_of_pages,number_of_threads):
     return links, titles, document_data
 
 if len(sys.argv) == 1:
-    starting_link = "https://stackoverflow.com/"
+    starting_link = "https://www.sdna.gr/"
+    #starting_link = "https://stackoverflow.com/"
     number_of_pages = 400
     delete_database()
     number_of_threads = 4

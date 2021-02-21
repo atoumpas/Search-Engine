@@ -1,6 +1,6 @@
 Οδηγίες Εγκατάστασης:
-1) Κατεβάζουμε το XAMPP (https://www.apachefriends.org/index.html) και install
-2) Κάνουμε copy-paste τον φάκελο Search Engine στο xampp/htdocs
+1) Κατεβάζουμε το XAMPP (https://www.apachefriends.org/index.html) και install (για Linux οδηγίες: https://vitux.com/how-to-install-xampp-on-your-ubuntu-18-04-lts-system/)
+2) Κάνουμε copy-paste τον φάκελο Search Engine στο xampp/htdocs (ή opt/lampp/htdocs σε Linux)
 3) Στο xampp/htdocs, ανοίγουμε το index.php και αλλάζουμε στην 8η γραμμή το '/dashboard/' σε '/Search Engine/'
 4) Κάνουμε install τα απαραίτητα packages της python(bs4 + ό,τι άλλο ζητηθεί)
 5) Τρέχουμε τον indexer στο Search Engine/data και τον αφήνουμε να τρέχει στο background
